@@ -1,4 +1,7 @@
-﻿using System;
+﻿using AutoMapper;
+using GigHub.DTOs;
+using GigHub.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -13,6 +16,12 @@ namespace GigHub
     {
         protected void Application_Start()
         {
+            Mapper.Initialize(cfg => {
+                cfg.CreateMap<ApplicationUser, UserDTO>();
+                cfg.CreateMap<Gig, GigDTO>();
+                cfg.CreateMap<Notification, NotificationDTO>();
+            });
+
             GlobalConfiguration.Configure(WebApiConfig.Register);
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
