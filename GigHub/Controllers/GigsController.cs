@@ -1,7 +1,6 @@
-﻿using GigHub.Models;
-using GigHub.Persistence;
-using GigHub.Repositories;
-using GigHub.ViewModels;
+﻿using GigHub.Core.Models;
+using GigHub.Core;
+using GigHub.Core.ViewModels;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections;
@@ -14,13 +13,11 @@ namespace GigHub.Controllers
 {
     public class GigsController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private UnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GigsController()
+        public GigsController(IUnitOfWork unitOfWork)
         {
-            _context = new ApplicationDbContext();
-            _unitOfWork = new UnitOfWork(_context);
+            _unitOfWork = unitOfWork;
         }
 
         [Authorize]
@@ -59,14 +56,9 @@ namespace GigHub.Controllers
             var gig = _unitOfWork.Gigs.GetGig(id);
 
             if (gig == null)
-            {
                 return HttpNotFound();
-            }
 
-            var viewModel = new GigDetailsViewModel
-            {
-                Gig = gig
-            };
+            var viewModel = new GigDetailsViewModel { Gig = gig };
 
             if (User.Identity.IsAuthenticated)
             {
@@ -121,14 +113,10 @@ namespace GigHub.Controllers
             var gig = _unitOfWork.Gigs.GetGig(id);
 
             if (gig == null)
-            {
                 return HttpNotFound();
-            }
 
             if (gig.ArtistId != User.Identity.GetUserId())
-            {
                 return new HttpUnauthorizedResult();
-            }
 
             var viewModel = new GigFormViewModel
             {
@@ -158,14 +146,10 @@ namespace GigHub.Controllers
             var gig = _unitOfWork.Gigs.GetGigWithAttendees(viewModel.Id);
 
             if (gig == null)
-            {
                 return HttpNotFound();
-            }
 
             if (gig.ArtistId != User.Identity.GetUserId())
-            {
                 return new HttpUnauthorizedResult();
-            }
 
             gig.Modify(viewModel.GetDateTime(), viewModel.Venue, viewModel.Genre);
 

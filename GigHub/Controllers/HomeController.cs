@@ -1,45 +1,27 @@
-﻿using GigHub.Models;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Data.Entity;
-using GigHub.ViewModels;
+using GigHub.Core.ViewModels;
 using Microsoft.AspNet.Identity;
-using GigHub.Repositories;
+using GigHub.Persistence;
+using GigHub.Persistence.Repositories;
+using GigHub.Core;
 
 namespace GigHub.Controllers
 {
     public class HomeController : Controller
     {
-        private ApplicationDbContext _context;
-        private FollowingRepository _followingRepository;
-        private GigRepository _gigRepository;
-        private AttendanceRepository _attendanceRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-
-        public HomeController()
+        public HomeController(IUnitOfWork unitOfWork)
         {
-            _context = new ApplicationDbContext();
-            _followingRepository = new FollowingRepository(_context);
-            _gigRepository = new GigRepository(_context);
-            _attendanceRepository = new AttendanceRepository(_context);
+            _unitOfWork = unitOfWork;
         }
 
         public ActionResult Index(string query = null)
         {
-            var upComingGigs = _context.Gigs
-                .Include(g => g.Artist)
-                .Include(g => g.Genre)
-                .Where(g => g.DateTime > DateTime.Now && !g.IsCancelled);
-
-            if (!string.IsNullOrWhiteSpace(query))
-            {
-                upComingGigs = upComingGigs.Where(g => g.Artist.Name.Contains(query) ||
-                                                       g.Genre.Name.Contains(query) ||
-                                                       g.Venue.Contains(query));
-            }
+            var upComingGigs = _unitOfWork.Gigs.GetUpcomingGigs(query);
 
             var userId = User.Identity.GetUserId();
 
@@ -49,8 +31,8 @@ namespace GigHub.Controllers
                 ShowActions = User.Identity.IsAuthenticated,
                 Heading = "Upcoming Gigs",
                 SearchTerm = query,
-                Attendances = _attendanceRepository.GetFutureAttendances(userId).ToLookup(a => a.GigId),
-                Followings = _followingRepository.GetUserFollowings(userId).ToLookup(f => f.FolloweeId)
+                Attendances = _unitOfWork.Attendances.GetFutureAttendances(userId).ToLookup(a => a.GigId),
+                Followings = _unitOfWork.Followings.GetUserFollowings(userId).ToLookup(f => f.FolloweeId)
             };
 
             return View("Gigs", viewModel);

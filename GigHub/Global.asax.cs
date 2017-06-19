@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using GigHub.DTOs;
-using GigHub.Models;
+using GigHub.Core.DTOs;
+using GigHub.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
