@@ -23,13 +23,13 @@ namespace GigHub.Controllers.Api
         {
             var gig = _unitOfWork.Gigs.GetGigWithAttendees(id);
 
-            if (gig.ArtistId != User.Identity.GetUserId())
-                return Unauthorized();
-
-            if (gig.IsCancelled)
+            if (gig == null || gig.IsCancelled)
             {
                 return NotFound();
             }
+
+            if (gig.ArtistId != User.Identity.GetUserId())
+                return Unauthorized();
 
             gig.Cancel();
 
